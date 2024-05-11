@@ -1,0 +1,20 @@
+{
+  "name": "Placeholder name",
+  "action": {
+    "default_title": "Placeholder default_title"
+  },
+  "manifest_version": 3,
+  "version": "0.1",
+  "description": "Turns the page red when you click the icon",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+
+  "background": {
+    "scripts": [
+      "src/lib/lib.js",
+      "src/background.js"
+    ]
+  }
+}
