@@ -1,10 +1,11 @@
 {
   "devDependencies": {
-    "webextension-polyfill": "^0.11.0"
+    "webextension-polyfill": "^0.11.0",
+    "alpinejs": "^3.13.10"
   },
 
   "__comment__": "hack that makes vanilla 'const mod = require('mymodule')' work as long as their libraries exist in __lib.js without needing any preproccessing",
   "scripts": {
-    "build": "npm install && browserify __lib.js --standalone LIB > src/lib/lib.js && echo \"function require(n) {return LIB[n]}\" >> src/lib/lib.js"
+    "build": "npm install && browserify lib.config.js --standalone LIB > src/lib/lib.js && echo \"function require(n) {return LIB[n]}\" >> src/lib/lib.js"
   }
 }
