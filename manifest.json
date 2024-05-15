@@ -4,11 +4,9 @@
     "default_title": "Placeholder default_title",
     "default_popup": "src/overlay.html"
   },
-
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; default-src 'self' https://*; connect-src 'self' https://*;"
+    "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline' https://*; object-src 'self'; default-src 'self' 'unsafe-inline' https://*; connect-src 'self' 'unsafe-inline' https://*;"
   },
-
   "manifest_version": 3,
   "version": "0.1",
   "description": "Turns the page red when you click the icon",
@@ -20,21 +18,16 @@
   "host_permissions": [
     "<all_urls>"
   ],
-
   "web_accessible_resources": [
     {
-      "resources": ["src/overlay.html", "src/overlay.js", "src/lib/lib.js"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "src/overlay.html",
+        "src/overlay.js",
+        "src/lib/lib.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
-  ],
-
-  "declarative_net_request": {
-    "rule_resources": [
-        {
-            "id": "remove_csp",
-            "enabled": true,
-            "path": "/rules/remove_csp.json"
-        }
-    ]
-}
+  ]
 }

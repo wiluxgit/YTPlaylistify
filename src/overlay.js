@@ -26,13 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("read site!", site)
         return site
     }
+    /*
     const getTitleFromEmbedd = (webcontents) => {
         const extractTitleRegex = /([^>]*)<\/span><span class/g;
         let match;
         while ((match = extractTitleRegex.exec(webcontents)) !== null) {
             return match[1];
         }
-    }
+    }*/
     const spotifyEmbedToYtSearch = (webcontents) => {
         const extractListItemRegex = /<li class="TracklistRow_trackListRow.*?>(.*?)<\/li>/g;
         const extractTitleRegex = /class="TracklistRow_title.*?>(.*?)<\/.*?>/g;
@@ -59,10 +60,75 @@ document.addEventListener("DOMContentLoaded", () => {
         return ytUrls;
     }
 
+    class Track {
+        constructor({title, artist}) {
+            this.title = title;
+            this.artist = artist;
+        }
+        toString() {
+            return `${this.constructor.name}{${this.title} by ${this.artist}}`;
+        }
+    }
+
+    const getTitleFromSpotifyEmbedd = async (htmlComponent) => {
+        return new Promise((resolve, reject) => {
+            htmlComponent.querySelectorAll('div[class*="Marquee_container"]').forEach(marqContainer => {
+                console.log("Marquee_container")
+                marqContainer.querySelectorAll('div[class*="Marquee_inner"]').forEach(marq => {
+                    console.log("Marquee_inner")
+                    marq.querySelectorAll('span').forEach(span => {
+                        if (span.childNodes.length > 1) {
+                            return
+                        }
+                        const spanContents = span.innerHTML.trim()
+                        resolve(spanContents) // Assuming first match is the playlist title
+                    })
+                })
+            })
+            reject("could not find playlist title")
+        })
+    }
+    const getSongsFromSpotifyEmbedd = (htmlComponent) => {
+        const tracks = []
+        const olElement =  htmlComponent.querySelector('ol');
+        if (olElement) {
+            const liElements = olElement.querySelectorAll('li');
+            liElements.forEach(li => {
+                const htlm_title = li.querySelector('[class*="_title_"]')
+                const html_artist = li.querySelector('[class*="_subtitle_"]')
+                tracks.push(new Track({ title: htlm_title.textContent, artist: html_artist.textContent }))
+            });
+        } else {
+            return error("No list found in the fetched HTML, perhaps spotify has updated their view?");
+        }
+        if (tracks.length < 1) {
+            return error("Playlist contains no tracks");
+        }
+        return tracks
+    }
+
     // Begin code
     const H_url = document.getElementById("H_url");
     const H_to_youtube = document.getElementById("H_to_youtube");
     const H_console = document.getElementById("H_console");
+    const H_embedd = document.getElementById("H_embedd");
+
+    const log = (...args) => {
+        console.log(args)
+        for (let i = 0; i < args.length; i++) {
+            if (i > 0) {
+                H_console.value += " "+String(args[i]);
+            } else  {
+                H_console.value += ""+String(args[i]);
+            }
+        }
+        H_console.value += '\n';
+        H_console.scrollTop = H_console.scrollHeight;
+        return undefined
+    }
+    const error = (...args) => {
+        return log("ERROR>", ...args)
+    }
 
     const onUrlChanged = debounce(100, async () =>  {
         console.log("H_url", H_url.value)
@@ -70,11 +136,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const match = H_url.value.match(extract_url);
         const spotify_url = match ? `https://open.spotify.com/embed/playlist/${match[1]}` : null;
         console.log("spotify_url", spotify_url)
-        const webcontents = download_website(spotify_url)
-        const playlistTitle = getTitleFromEmbedd(webcontents)
-        const ytSearchUrls = spotifyEmbedToYtSearch(webcontents)
-        console.log("playlistTitle", playlistTitle)
-        console.log("ytSearchUrls", ytSearchUrls)
+
+        const spotifyWebcontents = await download_website(spotify_url)
+        if (!(typeof spotifyWebcontents === "string")) {
+            return error(`Failed to download ${spotify_url}`)
+        }
+
+        H_embedd.innerHTML = spotifyWebcontents
+        const playlistTitle = await getTitleFromSpotifyEmbedd(H_embedd)
+        const tracks = await getSongsFromSpotifyEmbedd(H_embedd)
+        log("playlistTitle", playlistTitle)
+        log("tracks", tracks)
     })
 
 

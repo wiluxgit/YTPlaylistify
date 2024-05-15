@@ -3,9 +3,22 @@
   <script src="overlay.js"></script>
   <script src="lib/lib.js"></script>
 
-  <input type="text" id="H_url">
-  <br>
-  <input type="button" id="H_to_youtube">
+  <style>
+    #H_console {
+        width: 300px;
+        height: 300px;
+        border: 1px solid #ccc;
+        padding: 5px;
+        font-family: monospace;
+        overflow-y: auto;
+    }
+</style>
+
+  <input id="H_url" type="text" placeholder="url to convert">
+  <input id="H_to_youtube" type="button" value="Debug">
   <br>
   <textarea id="H_console"></textarea>
+  <br>
+  <!-- should be invisible -->
+  <div id="H_embedd"></div>
 </html>
