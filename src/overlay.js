@@ -10,12 +10,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const args = arguments;
             clearTimeout(timer);
             timer = setTimeout(() => {
-            func.apply(context, args);
+                func.apply(context, args);
             }, delay);
         };
     }
 
-    const download_website = async (url) => {
+    const downloadWebsite = async (url) => {
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
             "Access-Control-Allow-Origin":"*",
@@ -23,41 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const site = await
             fetch(url, {headers: headers})
             .then(response => response.text())
-        console.log("read site!", site)
+        //console.log("read site!", site)
         return site
-    }
-    /*
-    const getTitleFromEmbedd = (webcontents) => {
-        const extractTitleRegex = /([^>]*)<\/span><span class/g;
-        let match;
-        while ((match = extractTitleRegex.exec(webcontents)) !== null) {
-            return match[1];
-        }
-    }*/
-    const spotifyEmbedToYtSearch = (webcontents) => {
-        const extractListItemRegex = /<li class="TracklistRow_trackListRow.*?>(.*?)<\/li>/g;
-        const extractTitleRegex = /class="TracklistRow_title.*?>(.*?)<\/.*?>/g;
-        const extractArtistRegex = /class="TracklistRow_subtitle.*?>([^>]*?)<\/h4/g;
-
-        const ytUrls = [];
-        let match;
-        while ((match = extractListItemRegex.exec(webcontents)) !== null) {
-            const listItem = match[1];
-            const titleMatch = extractTitleRegex.exec(listItem);
-            const artistMatch = extractArtistRegex.exec(listItem);
-
-            if (titleMatch && artistMatch) {
-                const title = titleMatch[1];
-                const artist = artistMatch[1];
-
-                const escapeTerm = encodeURIComponent(`Nightcore ${title}, ${artist}`);
-                const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${escapeTerm}`;
-
-                ytUrls.push(youtubeSearchUrl);
-            }
-        }
-
-        return ytUrls;
     }
 
     class Track {
@@ -88,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
             reject("could not find playlist title")
         })
     }
+
     const getSongsFromSpotifyEmbedd = (htmlComponent) => {
         const tracks = []
         const olElement =  htmlComponent.querySelector('ol');
@@ -107,6 +75,34 @@ document.addEventListener("DOMContentLoaded", () => {
         return tracks
     }
 
+    const trackListToYtSearch = (tracklist, preSearch) => {
+        const ytUrls = tracklist.map(track => {
+            const escapeTerm = encodeURIComponent(`${preSearch} ${track.title}, ${track.artist}`);
+            const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${escapeTerm}`
+            return youtubeSearchUrl
+        })
+
+        return ytUrls
+    }
+
+    const re_extractVideoIdJsons = /{"videoRenderer":{"videoId":".*?}}}/g
+    const parallellSearchYTForAndReturnVideoIds = async (ytUrls) => {
+        const promises = ytUrls.map(async (ytUrl) => {
+            const webResult = await downloadWebsite(ytUrl)
+            let match
+            for (match of webResult.matchAll(re_extractVideoIdJsons)) {
+                const videoInfoStr = match[0] + "}}"
+                //console.log(videoInfoStr);
+                const videoInfo = JSON.parse(videoInfoStr)
+                const id = videoInfo.videoRenderer.videoId
+                const title = videoInfo.videoRenderer.title.runs[0].text
+                console.log(`id=\"${id}\" title=\"${title}\"`)
+                return id;
+            }
+        })
+        return Promise.all(promises);
+    }
+
     // Begin code
     const H_url = document.getElementById("H_url");
     const H_to_youtube = document.getElementById("H_to_youtube");
@@ -114,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const H_embedd = document.getElementById("H_embedd");
 
     const log = (...args) => {
-        console.log(args)
+        console.log(...args)
         for (let i = 0; i < args.length; i++) {
             if (i > 0) {
                 H_console.value += " "+String(args[i]);
@@ -137,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const spotify_url = match ? `https://open.spotify.com/embed/playlist/${match[1]}` : null;
         console.log("spotify_url", spotify_url)
 
-        const spotifyWebcontents = await download_website(spotify_url)
+        const spotifyWebcontents = await downloadWebsite(spotify_url)
         if (!(typeof spotifyWebcontents === "string")) {
             return error(`Failed to download ${spotify_url}`)
         }
@@ -145,8 +141,19 @@ document.addEventListener("DOMContentLoaded", () => {
         H_embedd.innerHTML = spotifyWebcontents
         const playlistTitle = await getTitleFromSpotifyEmbedd(H_embedd)
         const tracks = await getSongsFromSpotifyEmbedd(H_embedd)
+        H_embedd.innerHTML = ""
+
         log("playlistTitle", playlistTitle)
         log("tracks", tracks)
+        if (playlistTitle === undefined || tracks.length === 0) {
+            return
+        }
+
+        const ytSearchLinks = trackListToYtSearch(tracks, "Nightcore")
+        log("ytSearchLinks", ytSearchLinks)
+
+        const ytVideoIds = await parallellSearchYTForAndReturnVideoIds(ytSearchLinks)
+        log("ytVideoIds", ytVideoIds)
     })
 
 
