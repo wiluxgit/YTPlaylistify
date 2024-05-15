@@ -23,14 +23,18 @@
     {
       "resources": [
         "src/link_preview.html",
-        "src/link_preview.js",
+        "src/link_preview.mjs",
         "src/overlay.html",
-        "src/overlay.js",
-        "src/lib/lib.js"
+        "src/overlay.mjs",
+        "src/lib/lib.mjs"
       ],
       "matches": [
         "<all_urls>"
       ]
     }
-  ]
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  }
 }

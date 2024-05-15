@@ -1,3 +1,4 @@
+import {require} from "./lib/lib.mjs"
 document.addEventListener("DOMContentLoaded", () => {
     const browser = require("webextension-polyfill");
     console.log("Open site")
@@ -16,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const downloadWebsite = async (url) => {
-        headers = {
+        const headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
             "Access-Control-Allow-Origin":"*",
         }
@@ -156,15 +157,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const popupUrlArgs = {};
         ytVideoIds.forEach((value, index) => {
-            popupUrlArgs[index] = `www.youtube.com/watch?v=${value}`;
+            popupUrlArgs[index] = `https://www.youtube.com/watch?v=${value}`;
         });
-        browser.tabs.create({ url: `src/link_preview.html?${new URLSearchParams(popupUrlArgs).toString()}` });
+        //browser.tabs.create({ url: `src/link_preview.html?${new URLSearchParams(popupUrlArgs).toString()}` });
+        await browser.tabs.create({ url: popupUrlArgs[0]}).then(async newTab => {
+            await browser.scripting.executeScript({
+                target: { tabId: newTab.id },
+                func: () => {
+                    document.body.style.border = "5px solid green";
+                    alert(args)
+                },
+                files: ["src/link_preview.js"],
+            });
+        })
+        alert("don't leave me")
     })
 
 
     H_url.addEventListener("input", onUrlChanged);
     // default with current page
-    browser.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    browser.tabs.query({active: true, currentWindow: true}).then(tabs => {
         var url = tabs[0].url;
 
         //H_text.value = url

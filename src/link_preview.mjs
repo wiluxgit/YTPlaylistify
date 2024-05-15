@@ -1,5 +1,7 @@
+import {require} from "./lib/lib.mjs"
 document.addEventListener("DOMContentLoaded", () => {
     const H_arguments = document.getElementById("H_arguments");
+    alert("BLOCK")
 
     // Function to get URL parameters
     function getUrlParams() {

@@ -6,6 +6,6 @@
 
   "__comment__": "hack that makes vanilla 'const mod = require('mymodule')' work as long as their libraries exist in lib.config.js without needing any preproccessing",
   "scripts": {
-    "build": "npm install && browserify lib.config.js --standalone LIB > src/lib/lib.js && echo \"function require(n) {return LIB[n]}\" >> src/lib/lib.js"
+    "build": "npm install && browserify lib.config.js --standalone LIB > src/lib/lib.mjs && echo \"export function require(n) {return LIB[n]}\n\" >> src/lib/lib.mjs"
   }
 }
