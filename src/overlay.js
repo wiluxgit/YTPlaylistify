@@ -60,8 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const tracks = []
         const olElement =  htmlComponent.querySelector('ol');
         if (olElement) {
-            const liElements = olElement.querySelectorAll('li');
-            liElements.forEach(li => {
+            olElement.querySelectorAll('li').forEach(li => {
                 const htlm_title = li.querySelector('[class*="_title_"]')
                 const html_artist = li.querySelector('[class*="_subtitle_"]')
                 tracks.push(new Track({ title: htlm_title.textContent, artist: html_artist.textContent }))
@@ -154,6 +153,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const ytVideoIds = await parallellSearchYTForAndReturnVideoIds(ytSearchLinks)
         log("ytVideoIds", ytVideoIds)
+
+        const popupUrlArgs = {};
+        ytVideoIds.forEach((value, index) => {
+            popupUrlArgs[index] = `www.youtube.com/watch?v=${value}`;
+        });
+        browser.tabs.create({ url: `src/link_preview.html?${new URLSearchParams(popupUrlArgs).toString()}` });
     })
 
 

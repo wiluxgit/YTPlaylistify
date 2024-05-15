@@ -11,6 +11,7 @@
   "version": "0.1",
   "description": "Placeholder description",
   "permissions": [
+    "tabs",
     "activeTab",
     "scripting",
     "declarativeNetRequest"
@@ -21,6 +22,8 @@
   "web_accessible_resources": [
     {
       "resources": [
+        "src/link_preview.html",
+        "src/link_preview.js",
         "src/overlay.html",
         "src/overlay.js",
         "src/lib/lib.js"
