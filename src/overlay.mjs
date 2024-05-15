@@ -1,4 +1,5 @@
 import {require} from "./lib/lib.mjs"
+import * as Types from "./types.mjs"
 document.addEventListener("DOMContentLoaded", () => {
     const browser = require("webextension-polyfill");
     console.log("Open site")
@@ -28,16 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return site
     }
 
-    class Track {
-        constructor({title, artist}) {
-            this.title = title;
-            this.artist = artist;
-        }
-        toString() {
-            return `${this.constructor.name}{${this.title} by ${this.artist}}`;
-        }
-    }
-
     const getTitleFromSpotifyEmbedd = async (htmlComponent) => {
         return new Promise((resolve, reject) => {
             htmlComponent.querySelectorAll('div[class*="Marquee_container"]').forEach(marqContainer => {
@@ -64,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
             olElement.querySelectorAll('li').forEach(li => {
                 const htlm_title = li.querySelector('[class*="_title_"]')
                 const html_artist = li.querySelector('[class*="_subtitle_"]')
-                tracks.push(new Track({ title: htlm_title.textContent, artist: html_artist.textContent }))
+                tracks.push(new Types.Track({ title: htlm_title.textContent, artist: html_artist.textContent }))
             });
         } else {
             return error("No list found in the fetched HTML, perhaps spotify has updated their view?");
@@ -155,27 +146,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const ytVideoIds = await parallellSearchYTForAndReturnVideoIds(ytSearchLinks)
         log("ytVideoIds", ytVideoIds)
 
-        const popupUrlArgs = {};
-        ytVideoIds.forEach((value, index) => {
-            popupUrlArgs[index] = `https://www.youtube.com/watch?v=${value}`;
-        });
-        //browser.tabs.create({ url: `src/link_preview.html?${new URLSearchParams(popupUrlArgs).toString()}` });
-        await browser.tabs.create({ url: popupUrlArgs[0]}).then(async newTab => {
-            await browser.scripting.executeScript({
-                target: { tabId: newTab.id },
-                func: () => {
-                    document.body.style.border = "5px solid green";
-                    alert(args)
-                },
-                files: ["src/link_preview.js"],
-            });
-        })
-        alert("don't leave me")
+        const urls = ytVideoIds.map(id => `https://www.youtube.com/watch?v=${id}`)
+
+        browser.runtime.sendMessage(
+            browser.runtime.id,
+            new Types.MCreatePlaylist({injectionSite: urls[0], urls: urls})
+        )
     })
-
-
     H_url.addEventListener("input", onUrlChanged);
-    // default with current page
+
+    // default H_url with current page
     browser.tabs.query({active: true, currentWindow: true}).then(tabs => {
         var url = tabs[0].url;
 
