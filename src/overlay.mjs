@@ -1,4 +1,4 @@
-import {require} from "./lib/lib.mjs"
+import {require} from "./generated/lib.mjs"
 import * as Types from "./types.mjs"
 document.addEventListener("DOMContentLoaded", () => {
     const browser = require("webextension-polyfill");

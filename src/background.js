@@ -1,4 +1,4 @@
-import {require} from "./lib/lib.mjs"
+import {require} from "./generated/lib.mjs"
 import * as Types from "./types.mjs"
 const browser = require("webextension-polyfill")
 
@@ -8,11 +8,9 @@ function sleep(ms) {
 }
 function injectScript() {
     console.log("load link_preview")
-    document.body.style.border = "5px solid green";
-    browser.runtime.sendMessage(
-        browser.runtime.id,
-        new Types.MDebug({message: "Hello from the other side"})
-    )
+    console.log("load link_preview")
+    console.log("load link_preview")
+    alert("load link_preview")
 }
 
 browser.runtime.onMessage.addListener(async (jsonMessage, sender, sendResponse) => {
@@ -22,14 +20,22 @@ browser.runtime.onMessage.addListener(async (jsonMessage, sender, sendResponse) 
 
     if (message instanceof Types.MCreatePlaylist) {
         console.log(`Execing Create playlist:`);
-        await browser.tabs.create({ url: message.injectionSite }).then(async tab => {
-            console.log(`New tab loaded1 id:${tab.id}`)
-            await browser.scripting.executeScript({
-                target: { tabId: tab.id },
-                //files: ["./src/link_preview.mjs"],
-                func: injectScript
-            });
-            console.log(`New tab loaded2 id:${tab.id}`)
+        await browser.tabs.create({ url: "https://gurka.se" }).then(async tab => {
+            try {
+                console.log(`New tab loaded1 id:${tab.id}`)
+                await browser.scripting.executeScript({
+                    target: {
+                        tabId: tab.id,
+                        allFrames: true,
+                    },
+                    files: ["src/generated/lib.js", "src/injection_scripts/yt.js"],
+                    injectImmediately: true,
+                    //func: injectScript,
+                });
+                console.log(`New tab loaded2 id:${tab.id}`)
+            } catch (err) {
+                console.error(`failed to execute script: ${err}`);
+            }
         })
     } else {
         const msg = `${message} has no handler`

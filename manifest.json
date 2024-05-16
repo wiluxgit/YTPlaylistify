@@ -22,11 +22,11 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "src/link_preview.html",
         "src/link_preview.mjs",
         "src/overlay.html",
         "src/overlay.mjs",
-        "src/lib/lib.mjs"
+        "src/generated/lib.mjs",
+        "src/generated/lib.js"
       ],
       "matches": [
         "<all_urls>"
