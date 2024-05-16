@@ -20,7 +20,7 @@ browser.runtime.onMessage.addListener(async (jsonMessage, sender, sendResponse) 
 
     if (message instanceof Types.MCreatePlaylist) {
         console.log(`Execing Create playlist:`);
-        await browser.tabs.create({ url: "https://gurka.se" }).then(async tab => {
+        await browser.tabs.create({ url: message.injectionSite }).then(async tab => {
             try {
                 console.log(`New tab loaded1 id:${tab.id}`)
                 await browser.scripting.executeScript({
