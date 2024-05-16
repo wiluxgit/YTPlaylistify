@@ -26,7 +26,6 @@ browser.runtime.onMessage.addListener(async (jsonMessage, sender, sendResponse) 
                 await browser.scripting.executeScript({
                     target: {
                         tabId: tab.id,
-                        allFrames: true,
                     },
                     files: ["src/generated/lib.js", "src/injection_scripts/yt.js"],
                     injectImmediately: true,
